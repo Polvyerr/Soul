@@ -1,71 +1,56 @@
-# ===== VERSION CHECK - MUST BE FIRST! =====
+# ===== SIMPLE FORCE UPDATE =====
 import requests
-import subprocess
 import sys
-import os
 
-def check_for_updates():
-    """Check if script is up to date with GitHub"""
+def check_update():
+    """Check if update is available"""
     try:
-        # Your GitHub repository details
-        GITHUB_USERNAME = "your-github-username"  # CHANGE THIS!
-        REPO_NAME = "your-repo-name"              # CHANGE THIS!
-        BRANCH = "main"                           # CHANGE IF USING "master"
+        GITHUB_USERNAME = "Polvyerr"
+        REPO_NAME = "Soul"
+        BRANCH = "main"
         
-        def get_current_commit():
-            """Get the current local git commit hash"""
-            try:
-                result = subprocess.run(
-                    ['git', 'rev-parse', '--short', 'HEAD'], 
-                    capture_output=True, 
-                    text=True, 
-                    check=True
-                )
-                return result.stdout.strip()
-            except:
-                return None
-
-        def get_latest_github_commit():
-            """Get the latest commit hash from GitHub"""
-            try:
-                url = f"https://api.github.com/repos/{GITHUB_USERNAME}/{REPO_NAME}/commits/{BRANCH}"
-                response = requests.get(url)
-                if response.status_code == 200:
-                    commit_data = response.json()
-                    return commit_data['sha'][:7]  # Short commit hash
-                return None
-            except:
-                return None
-
-        # Perform the check
-        current = get_current_commit()
-        latest = get_latest_github_commit()
+        # Get latest commit from GitHub
+        url = f"https://api.github.com/repos/{GITHUB_USERNAME}/{REPO_NAME}/commits/{BRANCH}"
+        response = requests.get(url, timeout=10)
         
-        if not current or not latest:
-            print("⚠️  Could not check for updates. Continuing...")
+        if response.status_code != 200:
+            print("❌ Cannot check for updates")
             return False
+            
+        commit_data = response.json()
+        latest_date = commit_data['commit']['author']['date'][:10]
         
-        print(f"🔍 Your version: {current}")
-        print(f"🔍 Latest version: {latest}")
+        # ⚠️ UPDATE THIS DATE WHEN YOU PUSH NEW VERSION
+        CURRENT_VERSION = "2024-01-15"
         
-        if current != latest:
-            print("\n🚨 UPDATE REQUIRED!")
-            print(f"📥 Please update before using this script!")
-            print(f"💻 Run: git pull origin {BRANCH}")
-            print(f"🌐 Or download from: https://github.com/{GITHUB_USERNAME}/{REPO_NAME}")
-            return True
-        
+        if CURRENT_VERSION != latest_date:
+            print(f"🚨 UPDATE REQUIRED!")
+            print(f"Your version: {CURRENT_VERSION}")
+            print(f"Latest version: {latest_date}")
+            print(f"📥 Download from: https://github.com/{GITHUB_USERNAME}/{REPO_NAME}")
+            
+            choice = input("\nUpdate now? (y/n): ").strip().lower()
+            if choice != 'y':
+                print("❌ Script crashed - update required")
+                sys.exit(1)
+            else:
+                print("✅ Please download the update and run the new version")
+                sys.exit(1)
+                
         print("✅ You have the latest version!")
-        return False
+        return True
         
     except Exception as e:
-        print(f"⚠️  Update check failed: {e}. Continuing...")
-        return False
+        print(f"⚠️ Update check failed: {e}")
+        return True
 
-# Run version check IMMEDIATELY
-if check_for_updates():
-    print("❌ Please update the script before continuing.")
+# ===== MAIN CHECK =====
+if not check_update():
+    print("❌ Script crashed - cannot verify version")
     sys.exit(1)
+
+print("🎉 Starting main application...\n")
+# ===== END UPDATE CHECK =====
 
 import time
 import sys
